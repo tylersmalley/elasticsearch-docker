@@ -3,6 +3,7 @@ MAINTAINER Elastic Docker Team <docker@elastic.co>
 
 ARG ELASTIC_VERSION
 ARG ES_DOWNLOAD_URL
+ARG XPACK_URL=x-pack
 ARG ES_JAVA_OPTS
 
 ENV PATH /usr/share/elasticsearch/bin:$PATH
@@ -11,6 +12,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 WORKDIR /usr/share/elasticsearch
 
 # Download/extract defined ES version. busybox tar can't strip leading dir.
+RUN echo ${ES_DOWNLOAD_URL}/elasticsearch-${ELASTIC_VERSION}.tar.gz
 RUN wget ${ES_DOWNLOAD_URL}/elasticsearch-${ELASTIC_VERSION}.tar.gz && \
     EXPECTED_SHA=$(wget -O - ${ES_DOWNLOAD_URL}/elasticsearch-${ELASTIC_VERSION}.tar.gz.sha1) && \
     test $EXPECTED_SHA == $(sha1sum elasticsearch-${ELASTIC_VERSION}.tar.gz | awk '{print $1}') && \
@@ -28,7 +30,7 @@ RUN set -ex && for esdirs in config data logs; do \
 USER elasticsearch
 
 # Install xpack
-RUN eval ${ES_JAVA_OPTS:-} elasticsearch-plugin install --batch x-pack
+RUN eval ${ES_JAVA_OPTS:-} elasticsearch-plugin install --batch ${XPACK_URL}
 
 COPY elasticsearch.yml config/
 COPY log4j2.properties config/
